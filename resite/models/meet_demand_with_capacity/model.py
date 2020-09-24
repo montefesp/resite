@@ -51,7 +51,7 @@ def build_model_docplex(resite, cap_per_tech: List[float]):
     """Build model using pyomo"""
 
     from docplex.mp.model import Model
-    from pyggrid.resite.models.docplex_utils import maximize_load_proportion, tech_cap_bigger_than_limit, \
+    from resite.models.docplex_utils import maximize_load_proportion, tech_cap_bigger_than_limit, \
         capacity_bigger_than_existing, generation_bigger_than_load_x, create_generation_y_dict
 
     data = resite.data_dict
@@ -99,7 +99,7 @@ def build_model_gurobipy(resite, cap_per_tech: List[float]):
     """Build model using gurobipy"""
 
     from gurobipy import Model
-    from pyggrid.resite.models.gurobipy_utils import generation_bigger_than_load_x, capacity_bigger_than_existing, \
+    from resite.models.gurobipy_utils import generation_bigger_than_load_x, capacity_bigger_than_existing, \
         tech_cap_bigger_than_limit, maximize_load_proportion, create_generation_y_dict
 
     data = resite.data_dict
@@ -148,7 +148,7 @@ def build_model_pyomo(resite, cap_per_tech: List[float]):
     """Build model using pyomo"""
 
     from pyomo.environ import ConcreteModel, Var, NonNegativeReals
-    from pyggrid.resite.models.pyomo_utils import tech_cap_bigger_than_limit, maximize_load_proportion, \
+    from resite.models.pyomo_utils import tech_cap_bigger_than_limit, maximize_load_proportion, \
         generation_bigger_than_load_x, capacity_bigger_than_existing, create_generation_y_dict
 
     data = resite.data_dict

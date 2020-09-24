@@ -4,7 +4,7 @@ from typing import Dict
 import pandas as pd
 import numpy as np
 
-from pyggrid.resite.models.complementarity.utils import resource_quality_mapping, critical_window_mapping
+from resite.models.complementarity.utils import resource_quality_mapping, critical_window_mapping
 
 import logging
 

@@ -10,15 +10,15 @@ import pandas as pd
 
 from shapely.ops import unary_union
 
-from pyggrid.data.generation.vres.legacy import get_legacy_capacity_in_regions
-from pyggrid.data.generation.vres.profiles import compute_capacity_factors
-from pyggrid.data.generation.vres.potentials.glaes import get_capacity_potential_for_shapes
-from pyggrid.data.load import get_load
-from pyggrid.data.geographics import get_shapes, get_subregions, match_points_to_regions
-from pyggrid.data.technologies import get_config_dict, get_config_values
+from cepdata.generation.vres.legacy import get_legacy_capacity_in_regions
+from cepdata.generation.vres.profiles import compute_capacity_factors
+from cepdata.generation.vres.potentials.glaes import get_capacity_potential_for_shapes
+from cepdata.load import get_load
+from cepdata.geographics import get_shapes, get_subregions, match_points_to_regions
+from cepdata.technologies import get_config_dict, get_config_values
 
-from pyggrid.data.geographics.grid_cells import get_grid_cells
-from pyggrid.resite.models.utils import write_lp_file, solve_model
+from cepdata.geographics.grid_cells import get_grid_cells
+from resite.models.utils import write_lp_file, solve_model
 
 import logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(asctime)s - %(message)s")

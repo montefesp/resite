@@ -2,7 +2,7 @@ import pandas as pd
 
 import pytest
 
-from pyggrid.resite.resite import Resite
+from resite.resite import Resite
 
 
 def test_init():

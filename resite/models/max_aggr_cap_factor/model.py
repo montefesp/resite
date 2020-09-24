@@ -26,7 +26,7 @@ def build_model_pyomo(resite, nb_sites_per_region: List[float]):
     """Model build-up with pyomo"""
 
     from pyomo.environ import ConcreteModel, Binary, Var
-    from pyggrid.resite.models.pyomo_utils import limit_number_of_sites_per_region, maximize_production
+    from resite.models.pyomo_utils import limit_number_of_sites_per_region, maximize_production
 
     regions = resite.regions
     tech_points_tuples = list(resite.tech_points_tuples)
