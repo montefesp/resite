@@ -1,8 +1,10 @@
 from os.path import join
+from typing import Dict
 
 import pandas as pd
 
 import logging
+
 
 def write_lp_file(model, modelling: str, output_folder: str):
     """Save LP file of the model."""
@@ -22,8 +24,20 @@ def write_lp_file(model, modelling: str, output_folder: str):
 
 
 # TODO: should build and solve become one single function?
-def solve_model(resite) -> None:
-    """Solve the model and retrieve the solution."""
+def solve_model(resite, solver_options: Dict = None, solver: str = None, ) -> None:
+    """
+    Solve the model and retrieve the solution.
+
+    Parameters
+    ----------
+    resite: Resite
+        Resite object with built model.
+    solver_options: Dict
+        Options for the solver.
+    solver: str
+        Name of the solver to be used when modelling is pyomo
+
+    """
 
     if resite.modelling == "docplex":
         resite.instance.print_information()
@@ -40,7 +54,11 @@ def solve_model(resite) -> None:
     elif resite.modelling == "pyomo":
         from pyomo.opt import SolverFactory
         from pyomo.environ import value
-        opt = SolverFactory('gurobi')
+        solver = solver if solver is not None else 'cbc'
+        opt = SolverFactory(solver)
+        if solver_options is not None:
+            for option_name, option_value in solver_options.items():
+                opt.options[option_name] = option_value
         results = opt.solve(resite.instance, tee=True, keepfiles=False, report_timing=False)
         resite.results = results
         objective = value(resite.instance.objective)
@@ -69,6 +87,10 @@ def retrieve_solution(resite) -> None:
             y_value = resite.y[tech, lon, lat].X
         else:  # modelling == "pyomo":
             y_value = resite.instance.y[tech, lon, lat].value
+
+        # Keep the location only if the capacity installed is not too small
+        if y_value * resite.data_dict["cap_potential_ds"].loc[tech, lon, lat] < resite.min_cap_if_selected:
+            y_value = 0
 
         y_ds[tech, lon, lat] = y_value
         if y_value > 0.:
