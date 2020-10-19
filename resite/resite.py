@@ -10,14 +10,14 @@ import pandas as pd
 
 from shapely.ops import unary_union
 
-from cepdata.generation.vres.legacy import get_legacy_capacity_in_regions
-from cepdata.generation.vres.profiles import compute_capacity_factors
-from cepdata.generation.vres.potentials.glaes import get_capacity_potential_for_shapes
-from cepdata.load import get_load
-from cepdata.geographics import get_shapes, get_subregions, match_points_to_regions
-from cepdata.technologies import get_config_dict, get_config_values
+from iepy.generation.vres.legacy import get_legacy_capacity_in_regions
+from iepy.generation.vres.profiles import compute_capacity_factors
+from iepy.generation.vres.potentials.glaes import get_capacity_potential_for_shapes
+from iepy.load import get_load
+from iepy.geographics import get_shapes, get_subregions, match_points_to_regions
+from iepy.technologies import get_config_dict, get_config_values
 
-from cepdata.geographics.grid_cells import get_grid_cells
+from iepy.geographics.grid_cells import get_grid_cells
 from resite.models.utils import write_lp_file, solve_model
 
 import logging

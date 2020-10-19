@@ -22,8 +22,8 @@ Formulation Description:
 """
 from typing import Dict
 from os.path import join
-from cepdata.technologies.costs import get_costs
-from cepdata import data_path
+from iepy.technologies.costs import get_costs
+from iepy import data_path
 
 import numpy as np
 import pandas as pd
