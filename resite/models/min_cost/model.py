@@ -94,7 +94,7 @@ def build_model_docplex(resite, params: Dict):
     """Model build-up with docplex"""
 
     from docplex.mp.model import Model
-    from pyggrid.resite.models.docplex_utils import minimize_cost, capacity_bigger_than_existing, \
+    from resite.models.docplex_utils import minimize_cost, capacity_bigger_than_existing, \
         generation_bigger_than_load_proportion_with_slack, create_generation_y_dict
 
     data = resite.data_dict
@@ -146,7 +146,7 @@ def build_model_gurobipy(resite, params: Dict):
     """Model build-up. with gurobipy"""
 
     from gurobipy import Model
-    from pyggrid.resite.models.gurobipy_utils import minimize_cost, capacity_bigger_than_existing, \
+    from resite.models.gurobipy_utils import minimize_cost, capacity_bigger_than_existing, \
         generation_bigger_than_load_proportion_with_slack, create_generation_y_dict
 
     data = resite.data_dict
@@ -198,7 +198,7 @@ def build_model_pyomo(resite, params: Dict):
     """Model build-up using pyomo"""
 
     from pyomo.environ import ConcreteModel, NonNegativeReals, Var
-    from pyggrid.resite.models.pyomo_utils import capacity_bigger_than_existing, minimize_cost, \
+    from resite.models.pyomo_utils import capacity_bigger_than_existing, minimize_cost, \
         generation_bigger_than_load_proportion_with_slack, create_generation_y_dict
 
     data = resite.data_dict
