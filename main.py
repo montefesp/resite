@@ -1,6 +1,6 @@
 import yaml
 
-from pyggrid.resite.resite import Resite
+from resite.resite import Resite
 
 import logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(asctime)s - %(message)s")
