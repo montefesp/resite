@@ -1,18 +1,18 @@
 # Scope parameters
 spatial_resolution: 0.5
 timeslice: ['2016-01-01T00:00', '2016-01-01T4:00']
-regions: ['BENELUX']
-technologies: ['wind_onshore']
+regions: ['CWE']
+technologies: ['wind_onshore_national', 'wind_offshore_national', 'pv_utility_national', 'pv_residential_national']
 
-use_ex_cap: False
+use_ex_cap: True
 min_cap_if_selected: 0 # in GW
 
 
 # Optimization parameters
-formulation: 'meet_RES_targets' # Type of problem to be solved.
+formulation: 'min_cost' # Type of problem to be solved.
 formulation_params:
   # cap_per_tech: [0.5, 0.5]
-  perc_per_region: [0.001]
+  perc_per_region: [1.0]
   time_resolution: 'hour'
   # nb_sites_per_region: [11]
   #c: 1

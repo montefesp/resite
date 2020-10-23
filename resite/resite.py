@@ -143,6 +143,9 @@ class Resite:
         underestimated_capacity_indexes = existing_cap_ds > cap_potential_ds
         cap_potential_ds[underestimated_capacity_indexes] = existing_cap_ds[underestimated_capacity_indexes]
 
+        # TODO: remove or better integrate
+        existing_cap_ds = pd.Series(0., index=cap_potential_ds.index)
+
         # Remove sites that have a potential capacity under the desired value or equal to 0
         if min_cap_pot is None:
             min_cap_pot = [0]*len(self.technologies)
