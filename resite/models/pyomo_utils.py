@@ -11,7 +11,8 @@ def create_generation_y_dict(model, regions, tech_points_regions_ds, generation_
         # Get generation potential for points in region for each techno
         region_tech_points = tech_points_regions_ds[tech_points_regions_ds == region].index
         tech_points_generation_potential = generation_potential_df[region_tech_points]
-        region_ys = pd.Series([model.y[tech, lon, lat] for tech, lon, lat in region_tech_points], index=region_tech_points)
+        region_ys = pd.Series([model.y[tech, lon, lat] for tech, lon, lat in region_tech_points],
+                              index=region_tech_points)
         region_generation = tech_points_generation_potential * region_ys
         region_generation_y_dict[region] = region_generation.sum(axis=1).values
 
@@ -88,4 +89,16 @@ def minimize_cost(model, cap_potential_ds, regions, timestamps_idx, cost_dict):
         return sum(model.y[tech, lon, lat] * cap_potential_ds[tech, lon, lat] * cost_dict[tech]
                    for tech, lon, lat in cap_potential_ds.keys()) + \
                sum(model.ens[region, t] * cost_dict['ens'] for region in regions for t in timestamps_idx)
+    return Objective(rule=objective_rule, sense=minimize)
+
+
+def minimize_total_cost(model, cap_potential_ds, regions, timestamps_idx, costs_df):
+    def objective_rule(model):
+        capex = sum(model.y[tech, lon, lat] * cap_potential_ds[tech, lon, lat] * costs_df.loc[tech, 'capital']
+                    for tech, lon, lat in cap_potential_ds.keys())
+        opex = sum(model.p[tech, lon, lat, t] * costs_df.loc[tech, "marginal"]
+                   for tech, lon, lat in cap_potential_ds.keys() for t in timestamps_idx)
+        ens = sum(model.ens[region, t] * costs_df.loc['ens', "marginal"] for region in regions for t in timestamps_idx)
+        return capex + opex + ens
+
     return Objective(rule=objective_rule, sense=minimize)

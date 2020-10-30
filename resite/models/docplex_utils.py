@@ -71,7 +71,7 @@ def maximize_load_proportion(model, regions, timestamps_idxs):
 
 def minimize_cost(model, cap_potential_ds, regions, timestamps_idx, cost_dict):
     model.cost = model.sum(model.y[tech, lon, lat] * cap_potential_ds[tech, lon, lat] * cost_dict[tech]
-                   for tech, lon, lat in cap_potential_ds.keys()) + \
+                           for tech, lon, lat in cap_potential_ds.keys()) + \
                  model.sum(model.ens[region, t] * cost_dict['ens'] for region in regions for t in timestamps_idx)
     model.add_kpi(model.cost)
     model.minimize(model.cost)

@@ -20,6 +20,7 @@ Formulation Description:
     - load requirement: generation_t,r + ens_t,r >= load_t,r * perc_per_region_r for all r,t
     - existing capacity: y * potential capacity >= existing capacity; at each site
 """
+
 from typing import Dict
 from os.path import join
 from iepy.technologies.costs import get_costs
@@ -27,7 +28,6 @@ from iepy import data_path
 
 import numpy as np
 import pandas as pd
-
 
 
 def build_model(resite, modelling: str, params: Dict):
@@ -115,9 +115,8 @@ def build_model_docplex(resite, params: Dict):
     ens_tuples = []
     for r in regions:
         for t in np.arange(len(resite.timestamps)):
-            ens_tuples.append((r,t))
-    model.ens = model.continuous_var_dict(keys=ens_tuples,
-                                     lb=0., name=lambda k: 'ens_%s_%s' % (k[0], k[1]))
+            ens_tuples.append((r, t))
+    model.ens = model.continuous_var_dict(keys=ens_tuples, lb=0., name=lambda k: 'ens_%s_%s' % (k[0], k[1]))
 
     # Portion of capacity at each location for each technology
     model.y = model.continuous_var_dict(keys=tech_points_tuples, lb=0., ub=1.,
@@ -130,13 +129,13 @@ def build_model_docplex(resite, params: Dict):
     # - Constraints - #
     # Impose a certain percentage of the load to be covered over each time slice
     generation_bigger_than_load_proportion_with_slack(model, region_generation_y_dict, load, regions, time_slices,
-                                           load_perc_per_region)
+                                                      load_perc_per_region)
     # Percentage of capacity installed must be bigger than existing percentage
     existing_cap_percentage_ds = data["existing_cap_ds"].divide(data["cap_potential_ds"])
     capacity_bigger_than_existing(model, existing_cap_percentage_ds, tech_points_tuples)
 
     # - Objective - #
-    # Minimize the capacity that is deployed
+    # Minimize the cost of capacity that is deployed
     minimize_cost(model, data["cap_potential_ds"], regions, np.arange(len(resite.timestamps)), cost_dict)
 
     resite.instance = model
