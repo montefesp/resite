@@ -66,9 +66,21 @@ def maximize_load_proportion(model, x, regions, timestamps_idxs):
     model.setObjective(obj, GRB.MAXIMIZE)
     return obj
 
+
 def minimize_cost(model, y, ens, cap_potential_ds, regions, timestamps_idx, cost_dict):
     obj = sum(y[tech, lon, lat] * cap_potential_ds[tech, lon, lat] * cost_dict[tech]
               for tech, lon, lat in cap_potential_ds.keys()) + \
           sum(ens[region, t] * cost_dict['ens'] for region in regions for t in timestamps_idx)
+    model.setObjective(obj, GRB.MINIMIZE)
+    return obj
+
+
+def minimize_total_cost(model, y, p, ens, cap_potential_ds, regions, timestamps_idx, costs_df):
+    capex = sum(y[tech, lon, lat] * cap_potential_ds[tech, lon, lat] * costs_df.loc[tech, "capital"]
+                for tech, lon, lat in cap_potential_ds.keys())
+    opex = sum(p[tech, lon, lat, t] * costs_df.loc[tech, "marginal"]
+               for tech, lon, lat in cap_potential_ds.keys() for t in timestamps_idx)
+    ens = sum(ens[region, t] * costs_df.loc['ens', 'marginal'] for region in regions for t in timestamps_idx)
+    obj = capex + opex + ens
     model.setObjective(obj, GRB.MINIMIZE)
     return obj
