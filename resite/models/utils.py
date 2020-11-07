@@ -46,10 +46,23 @@ def solve_model(resite, solver_options: Dict = None, solver: str = None, ) -> No
         objective = resite.instance.objective_value
         print(f"Objective value: {objective}")
     elif resite.modelling == "gurobipy":
+        # if status == GRB.INFEASIBLE
+        if solver_options is not None:
+            for option_name, option_value in solver_options.items():
+                # TODO : this is shit
+                if option_name == "Threads":
+                    resite.instance.Params.Threads = option_value
+                elif option_name == "Method":
+                    resite.instance.Params.Method = option_value
+                elif option_name == "BarHomogeneous":
+                    resite.instance.Params.BarHomogeneous = option_value
+                elif option_name == "Crossover":
+                    resite.instance.Params.Crossover = option_value
+                elif option_name == "BarConvTol":
+                    resite.instance.Params.BarConvTol = option_value
         resite.instance.optimize()
         # from gurobipy import GRB
         # status = resite.instance.status
-        # if status == GRB.INFEASIBLE
         objective = resite.obj.getValue()
     elif resite.modelling == "pyomo":
         from pyomo.opt import SolverFactory
