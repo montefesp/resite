@@ -163,7 +163,7 @@ def build_model_gurobipy(resite, params: Dict):
     model.addConstrs(((sum(region_p_dict[region][t] for t in time_slices[u] for region in regions) +
                        sum(ens[region, t] for t in time_slices[u] for region in regions) >=
                        sum(load[t, regions.index(region)] for t in time_slices[u] for region in regions)
-                       * covered_load_perc_global[region])
+                       * covered_load_perc_global)
                        for u in np.arange(len(time_slices))), name='generation_check_global')
 
     # Percentage of capacity installed must be bigger than existing percentage
@@ -238,7 +238,7 @@ def build_model_pyomo(resite, params: Dict):
         return sum(region_p_dict[region][t] for t in time_slices[u]) + \
             sum(model.ens[region, t] for t in time_slices[u]) >= \
             sum(load[t, regions.index(region)] for t in time_slices[u]) * covered_load_perc_per_region[region]
-    model.generation_check_region = Constraint(np.arange(len(time_slices)), rule=generation_check_region_rule)
+    model.generation_check_region = Constraint(regions, np.arange(len(time_slices)), rule=generation_check_region_rule)
 
     # Global
     def generation_check_global_rule(model, u):
