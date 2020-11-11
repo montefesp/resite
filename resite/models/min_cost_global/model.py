@@ -135,10 +135,16 @@ def build_model_gurobipy(resite, params: Dict):
 
     # - Constraints - #
     # Generation limited by generation potential
-    model.addConstrs(((p[tech, lon, lat, t] <=
-                       y[tech, lon, lat] * generation_potential_df.iloc[t][(tech, lon, lat)])
-                      for tech, lon, lat, t in p_tuples),
-                     name='generation_limit')
+    # model.addConstrs(((p[tech, lon, lat, t] <=
+    #                    y[tech, lon, lat] * generation_potential_df.iloc[t][(tech, lon, lat)])
+    #                   for tech, lon, lat, t in p_tuples),
+    #                  name='generation_limit')
+    from gurobipy import LinExpr
+    generation_potential_dict = generation_potential_df.reset_index().to_dict()
+    for (tech, lon, lat) in tech_points_tuples:
+        for t in np.arange(len(resite.timestamps)):
+            rhs = LinExpr(generation_potential_dict[(tech, lon, lat)][t], y[tech, lon, lat])
+            model.addLConstr(p[tech, lon, lat, t] <= rhs, f"infeed_lower_than_potential_{tech}_{lon}_{lat}_{t}")
 
     # Create generation dictionary for building speed up
     # Compute a sum of generation per time-step per region
