@@ -1,4 +1,4 @@
-from gurobipy import GRB
+from gurobipy import GRB, quicksum, LinExpr
 
 import pandas as pd
 import numpy as np
@@ -75,12 +75,87 @@ def minimize_cost(model, y, ens, cap_potential_ds, regions, timestamps_idx, cost
     return obj
 
 
-def minimize_total_cost(model, y, p, ens, cap_potential_ds, regions, timestamps_idx, costs_df):
+def minimize_total_cost_old(model, y, p, ens, cap_potential_ds, regions, timestamps_idx, costs_df):
+
     capex = sum(y[tech, lon, lat] * cap_potential_ds[tech, lon, lat] * costs_df.loc[tech, "capital"]
                 for tech, lon, lat in cap_potential_ds.keys())
     opex = sum(p[tech, lon, lat, t] * costs_df.loc[tech, "marginal"]
                for tech, lon, lat in cap_potential_ds.keys() for t in timestamps_idx)
     ens = sum(ens[region, t] * costs_df.loc['ens', 'marginal'] for region in regions for t in timestamps_idx)
     obj = capex + opex + ens
+
     model.setObjective(obj, GRB.MINIMIZE)
+
     return obj
+
+
+def minimize_total_cost(model, y, p, ens, capacity_potential_ds, cost_df,
+                        tech_points_tuples, regions, int_timestamps):
+
+    capacity_potential_dict = capacity_potential_ds.to_dict()
+    cost_dict = cost_df.to_dict(orient='index')
+
+    cost_capacity_dict = dict.fromkeys(capacity_potential_dict.keys())
+    for (tech, lon, lat) in cost_capacity_dict:
+        cost_capacity_dict[(tech, lon, lat)] = capacity_potential_dict[(tech, lon, lat)] * cost_dict[tech]['capital']
+
+    ens_cost = cost_dict['ens']['marginal']
+
+    obj = quicksum(cost_capacity_dict[(tech, lon, lat)] * y[tech, lon, lat]
+                   for (tech, lon, lat) in tech_points_tuples) + \
+        quicksum(cost_dict[tech]['marginal'] * p[tech, lon, lat, t]
+                 for (tech, lon, lat) in tech_points_tuples for t in int_timestamps) + \
+        quicksum(ens_cost * ens[region, t] for region in regions for t in int_timestamps)
+
+    model.setObjective(obj, GRB.MINIMIZE)
+
+    return obj
+
+
+def infeed_lower_than_potential(model, p, y, cap_factor_df, cap_potential_ds, tech_points_tuples, int_timestamps):
+
+    generation_potential_df = cap_factor_df * cap_potential_ds
+    generation_potential_dict = generation_potential_df.reset_index().to_dict()
+    for (tech, lon, lat) in tech_points_tuples:
+        for t in int_timestamps:
+            rhs = LinExpr(generation_potential_dict[(tech, lon, lat)][t], y[tech, lon, lat])
+            model.addLConstr(p[tech, lon, lat, t] <= rhs, f"infeed_lower_than_potential_{tech}_{lon}_{lat}_{t}")
+
+
+def supply_bigger_than_demand_regional(model, p, ens, regions, tech_points_regions_ds, load,
+                              int_timestamps, time_slices, covered_load_perc_per_region):
+    # Compute a sum of generation per time-step per region
+    region_p_dict = dict.fromkeys(regions)
+    for region in regions:
+        # Get generation potential for points in region for each techno
+        region_tech_points = tech_points_regions_ds[tech_points_regions_ds == region].index
+        region_p_sum = pd.Series([sum(p[tech, lon, lat, t] for tech, lon, lat in region_tech_points)
+                                  for t in int_timestamps], index=int_timestamps)
+        region_p_dict[region] = region_p_sum
+
+    # Impose a certain percentage of the load to be covered over each time slice
+    model.addConstrs((sum(region_p_dict[region][t] for t in time_slices[u]) +
+                      sum(ens[region, t] for t in time_slices[u]) >=
+                      sum(load[t, regions.index(region)] for t in time_slices[u]) * covered_load_perc_per_region[region]
+                      for region in regions for u in np.arange(len(time_slices))),
+                     name='generation_bigger_than_load_proportion')
+
+
+def supply_bigger_than_demand_global(model, p, ens, regions, tech_points_regions_ds, load,
+                                     int_timestamps, time_slices, covered_load_perc_global):
+    # Compute a sum of generation per time-step per region
+    region_p_dict = dict.fromkeys(regions)
+    for region in regions:
+        # Get generation potential for points in region for each techno
+        region_tech_points = tech_points_regions_ds[tech_points_regions_ds == region].index
+        region_p_sum = pd.Series([sum(p[tech, lon, lat, t] for tech, lon, lat in region_tech_points)
+                                  for t in int_timestamps], index=int_timestamps)
+        region_p_dict[region] = region_p_sum
+
+    # Over all regions
+    model.addConstrs(((sum(region_p_dict[region][t] for t in time_slices[u] for region in regions) +
+                       sum(ens[region, t] for t in time_slices[u] for region in regions) >=
+                       sum(load[t, regions.index(region)] for t in time_slices[u] for region in regions)
+                       * covered_load_perc_global)
+                       for u in np.arange(len(time_slices))), name='generation_check_global')
+

@@ -94,7 +94,9 @@ def build_model_gurobipy(resite, params: Dict):
     """Model build-up using pyomo"""
 
     from gurobipy import Model
-    from resite.models.gurobipy_utils import minimize_total_cost, capacity_bigger_than_existing
+    from resite.models.gurobipy_utils import minimize_total_cost, \
+        capacity_bigger_than_existing, infeed_lower_than_potential, supply_bigger_than_demand_regional
+    import itertools as it
 
     data = resite.data_dict
     load = data["load"].values
@@ -102,7 +104,8 @@ def build_model_gurobipy(resite, params: Dict):
     technologies = resite.technologies
     tech_points_tuples = list(resite.tech_points_tuples)
     time_slices = define_time_slices(params["time_resolution"], resite.timestamps)
-    generation_potential_df = data["cap_factor_df"] * data["cap_potential_ds"]
+    tech_points_regions_ds = resite.tech_points_regions_ds
+    int_timestamps = np.arange(len(resite.timestamps))
 
     costs_df = get_cost_df(technologies, resite.timestamps)
 
@@ -113,47 +116,24 @@ def build_model_gurobipy(resite, params: Dict):
 
     # - Variables - #
     # Energy not served
-    # - Variables - #
-    ens_tuples = []
-    for r in regions:
-        for t in np.arange(len(resite.timestamps)):
-            ens_tuples.append((r, t))
+    ens_tuples = it.product(regions, int_timestamps)
     ens = model.addVars(ens_tuples, lb=0., name=lambda k: 'ens_%s_%s' % (k[0], k[1]))
 
     # Portion of capacity at each location for each technology
     y = model.addVars(tech_points_tuples, lb=0., ub=1., name=lambda k: 'y_%s_%s_%s' % (k[0], k[1], k[2]))
 
     # Generation at each time step
-    p_tuples = []
-    for tech_point_tuple in tech_points_tuples:
-        for t in np.arange(len(resite.timestamps)):
-            p_tuples.append(tech_point_tuple + (t, ))
-    p = model.addVars(p_tuples, lb=0., name=lambda k: 'p_%s_%s_%s_%s' % (k[0], k[1], k[2], k[3]))
+    p = model.addVars(tech_points_tuples,  int_timestamps,
+                      lb=0., name=lambda k: 'p_%s_%s_%s_%s' % (k[0], k[1], k[2], k[3]))
 
     # - Constraints - #
     # Generation limited by generation potential
-    model.addConstrs(((p[tech, lon, lat, t] <=
-                       y[tech, lon, lat] * generation_potential_df.iloc[t][(tech, lon, lat)])
-                      for tech, lon, lat, t in p_tuples),
-                     name='generation_limit')
-
-    # Create generation dictionary for building speed up
-    # Compute a sum of generation per time-step per region
-    region_p_dict = dict.fromkeys(regions)
-    for region in regions:
-        # Get generation potential for points in region for each techno
-        region_tech_points = resite.tech_points_regions_ds[resite.tech_points_regions_ds == region].index
-        region_p_sum = pd.Series([sum(p[tech, lon, lat, t] for tech, lon, lat in region_tech_points)
-                                 for t in np.arange(len(resite.timestamps))],
-                                 index=np.arange(len(resite.timestamps)))
-        region_p_dict[region] = region_p_sum
+    infeed_lower_than_potential(model, p, y, data["cap_factor_df"], data["cap_potential_ds"],
+                                tech_points_tuples, int_timestamps)
 
     # Impose a certain percentage of the load to be covered over each time slice
-    model.addConstrs(((sum(region_p_dict[region][t] for t in time_slices[u]) +
-                      sum(ens[region, t] for t in time_slices[u]) >=
-                      sum(load[t, regions.index(region)] for t in time_slices[u])
-                       * covered_load_perc_per_region[region])
-                      for region in regions for u in np.arange(len(time_slices))), name='generation_check')
+    supply_bigger_than_demand_regional(model, p, ens, regions, tech_points_regions_ds, load,
+                                       int_timestamps, time_slices, covered_load_perc_per_region)
 
     # Percentage of capacity installed must be bigger than existing percentage
     existing_cap_percentage_ds = data["existing_cap_ds"].divide(data["cap_potential_ds"])
@@ -161,8 +141,8 @@ def build_model_gurobipy(resite, params: Dict):
 
     # - Objective - #
     # Minimize the capacity that is deployed
-    obj = minimize_total_cost(model, y, p, ens, data["cap_potential_ds"], regions,
-                              np.arange(len(resite.timestamps)), costs_df)
+    obj = minimize_total_cost(model, y, p, ens, data["cap_potential_ds"], costs_df,
+                              tech_points_tuples, regions, int_timestamps)
 
     resite.instance = model
     resite.y = y
