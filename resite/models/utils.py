@@ -24,7 +24,7 @@ def write_lp_file(model, modelling: str, output_folder: str):
 
 
 # TODO: should build and solve become one single function?
-def solve_model(resite, solver_options: Dict = None, solver: str = None, ) -> None:
+def solve_model(resite, output_folder: str, solver_options: Dict = None,  solver: str = None) -> None:
     """
     Solve the model and retrieve the solution.
 
@@ -60,6 +60,7 @@ def solve_model(resite, solver_options: Dict = None, solver: str = None, ) -> No
                     resite.instance.Params.Crossover = option_value
                 elif option_name == "BarConvTol":
                     resite.instance.Params.BarConvTol = option_value
+        resite.instance.Params.LogFile = join(output_folder, 'resite.log')
         resite.instance.optimize()
         # from gurobipy import GRB
         # status = resite.instance.status
