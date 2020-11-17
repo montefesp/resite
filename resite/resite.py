@@ -88,7 +88,8 @@ class Resite:
 
         return output_folder
 
-    def build_data(self, use_ex_cap: bool, min_cap_pot: List[float] = None):
+    # TODO: compute_load must be better integrated
+    def build_data(self, use_ex_cap: bool, min_cap_pot: List[float] = None, compute_load: bool = True):
         """Preprocess data.
 
         Parameters:
@@ -101,7 +102,9 @@ class Resite:
 
         # TODO: this function needs to take as argument a vector data specifying which data it must compute
         # Compute total load (in GWh) for each region
-        load_df = get_load(timestamps=self.timestamps, regions=self.regions, missing_data='interpolate')
+        load_df = pd.DataFrame(0., index=self.timestamps, columns=self.regions)
+        if compute_load:
+            load_df = get_load(timestamps=self.timestamps, regions=self.regions, missing_data='interpolate')
 
         # Get shape of regions and list of subregions
         onshore_technologies = [get_config_values(tech, ["onshore"]) for tech in self.technologies]
