@@ -88,8 +88,9 @@ class Resite:
 
         return output_folder
 
-    # TODO: compute_load must be better integrated
-    def build_data(self, use_ex_cap: bool, min_cap_pot: List[float] = None, compute_load: bool = True):
+    # TODO: compute_load and region_shapes must be better integrated
+    def build_data(self, use_ex_cap: bool, min_cap_pot: List[float] = None,
+                   compute_load: bool = True, regions_shapes: pd.DataFrame = None):
         """Preprocess data.
 
         Parameters:
@@ -108,16 +109,19 @@ class Resite:
 
         # Get shape of regions and list of subregions
         onshore_technologies = [get_config_values(tech, ["onshore"]) for tech in self.technologies]
-        regions_shapes = pd.DataFrame(columns=["onshore", "offshore"], index=self.regions)
-        all_subregions = []
-        for region in self.regions:
-            subregions = get_subregions(region)
-            all_subregions.extend(subregions)
-            shapes = get_shapes(subregions, save=True)
-            if any(onshore_technologies):
-                regions_shapes.loc[region, "onshore"] = unary_union(shapes[~shapes['offshore']]['geometry'])
-            if not all(onshore_technologies):
-                regions_shapes.loc[region, "offshore"] = unary_union(shapes[shapes['offshore']]['geometry'])
+        if regions_shapes is None:
+            regions_shapes = pd.DataFrame(columns=["onshore", "offshore"], index=self.regions)
+            all_subregions = []
+            for region in self.regions:
+                subregions = get_subregions(region)
+                all_subregions.extend(subregions)
+                shapes = get_shapes(subregions, save=True)
+                if any(onshore_technologies):
+                    regions_shapes.loc[region, "onshore"] = unary_union(shapes[~shapes['offshore']]['geometry'])
+                if not all(onshore_technologies):
+                    regions_shapes.loc[region, "offshore"] = unary_union(shapes[shapes['offshore']]['geometry'])
+        else:
+            all_subregions = self.regions
 
         # Divide the union of all regions shapes into grid cells of a given spatial resolution
         # TODO: this is shitty because you cannot add different technologies in separate regions

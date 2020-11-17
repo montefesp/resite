@@ -45,8 +45,11 @@ def build_model(resite, modelling: str, params: Dict):
     """
     accepted_modelling = ["docplex", "gurobipy", "pyomo"]
     assert modelling in accepted_modelling, f"Error: This formulation was not coded with modelling language {modelling}"
-    assert 'perc_per_region' in params and len(params['perc_per_region']) == len(resite.regions), \
+    assert 'perc_per_region' in params, \
         "Error: This formulation requires a vector of required RES penetration per region."
+    assert len(params['perc_per_region']) == len(resite.regions), \
+        f"Error: number of percentages ({len(params['perc_per_region'])}) " \
+        f"must be equal to number of regions ({len(resite.regions)}"
     assert 'perc_global' in params, "Error: This formulation requires a global RES penetration."
 
     accepted_resolutions = ["hour", "day", "week", "month", "full"]
