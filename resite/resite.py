@@ -125,8 +125,8 @@ class Resite:
 
         # Divide the union of all regions shapes into grid cells of a given spatial resolution
         # TODO: this is shitty because you cannot add different technologies in separate regions
-        onshore_union = unary_union(regions_shapes["onshore"]) if any(onshore_technologies) else None
-        offshore_union = unary_union(regions_shapes["offshore"]) if not all(onshore_technologies) else None
+        onshore_union = unary_union(regions_shapes["onshore"].dropna()) if any(onshore_technologies) else None
+        offshore_union = unary_union(regions_shapes["offshore"].dropna()) if not all(onshore_technologies) else None
         grid_cells_ds = get_grid_cells(self.technologies, self.spatial_res, onshore_union, offshore_union)
 
         # Compute capacities potential
