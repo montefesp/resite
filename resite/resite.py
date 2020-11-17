@@ -182,7 +182,7 @@ class Resite:
             on_off = 'onshore' if get_config_values(tech, ['onshore']) else 'offshore'
             tech_sites_index = sites_index[sites_index.get_level_values(0) == tech]
             points = list(zip(tech_sites_index.get_level_values(1), tech_sites_index.get_level_values(2)))
-            tech_points_regions_ds[tech] = match_points_to_regions(points, regions_shapes[on_off]).values
+            tech_points_regions_ds[tech] = match_points_to_regions(points, regions_shapes[on_off].dropna()).values
 
         # Save all data in object
         self.use_ex_cap = use_ex_cap
