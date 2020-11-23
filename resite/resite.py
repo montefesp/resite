@@ -151,7 +151,7 @@ class Resite:
         cap_potential_ds[underestimated_capacity_indexes] = existing_cap_ds[underestimated_capacity_indexes]
 
         # TODO: remove or better integrate
-        existing_cap_ds = pd.Series(0., index=cap_potential_ds.index)
+        # existing_cap_ds = pd.Series(0., index=cap_potential_ds.index)
 
         # Remove sites that have a potential capacity under the desired value or equal to 0
         if min_cap_pot is None:
@@ -192,9 +192,9 @@ class Resite:
         self.initial_sites_ds = grid_cells_ds
         self.tech_points_regions_ds = tech_points_regions_ds
         self.data_dict["load"] = load_df
-        self.data_dict["cap_potential_ds"] = cap_potential_ds
-        self.data_dict["existing_cap_ds"] = existing_cap_ds
-        self.data_dict["cap_factor_df"] = cap_factor_df
+        self.data_dict["cap_potential_ds"] = cap_potential_ds.round(3)
+        self.data_dict["existing_cap_ds"] = existing_cap_ds.round(3)
+        self.data_dict["cap_factor_df"] = cap_factor_df.round(3)
 
     def build_model(self, modelling: str, formulation: str, formulation_params: Dict,
                     write_lp: bool = False, output_folder: str = None):
