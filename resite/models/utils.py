@@ -46,20 +46,21 @@ def solve_model(resite, output_folder: str, solver_options: Dict = None,  solver
         objective = resite.instance.objective_value
         print(f"Objective value: {objective}")
     elif resite.modelling == "gurobipy":
+
+        from .gurobipy_utils import GurobiFilter
+        grbfilter = GurobiFilter()
+
+        grblogger = logging.getLogger('gurobipy')
+        if grblogger is not None:
+            grblogger.addFilter(grbfilter)
+            grblogger = grblogger.getChild('gurobipy')
+            if grblogger is not None:
+                grblogger.addFilter(grbfilter)
+
         # if status == GRB.INFEASIBLE
         if solver_options is not None:
             for option_name, option_value in solver_options.items():
-                # TODO : this is shit
-                if option_name == "Threads":
-                    resite.instance.Params.Threads = option_value
-                elif option_name == "Method":
-                    resite.instance.Params.Method = option_value
-                elif option_name == "BarHomogeneous":
-                    resite.instance.Params.BarHomogeneous = option_value
-                elif option_name == "Crossover":
-                    resite.instance.Params.Crossover = option_value
-                elif option_name == "BarConvTol":
-                    resite.instance.Params.BarConvTol = option_value
+                resite.instance.setParam(option_name, option_value)
         resite.instance.Params.LogFile = join(output_folder, 'resite.log')
         resite.instance.optimize()
         # from gurobipy import GRB

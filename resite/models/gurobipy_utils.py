@@ -3,6 +3,8 @@ from gurobipy import GRB, quicksum, LinExpr
 import pandas as pd
 import numpy as np
 
+import logging
+
 
 def create_generation_y_dict(y, regions, tech_points_regions_ds, generation_potential_df):
 
@@ -159,3 +161,11 @@ def supply_bigger_than_demand_global(model, p, ens, regions, tech_points_regions
                        * covered_load_perc_global)
                        for u in np.arange(len(time_slices))), name='generation_check_global')
 
+
+class GurobiFilter(logging.Filter):
+
+    def __init__(self, name="GurobiFilter"):
+        super().__init__(name)
+
+    def filter(self, record):
+        return False
