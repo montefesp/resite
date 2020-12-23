@@ -24,7 +24,7 @@ Formulation Description:
 """
 
 from typing import Dict
-from os.path import join
+from os.path import join, abspath, dirname
 from iepy.technologies.costs import get_costs
 from iepy import data_path
 
@@ -47,9 +47,6 @@ def build_model(resite, modelling: str, params: Dict):
     assert modelling in accepted_modelling, f"Error: This formulation was not coded with modelling language {modelling}"
     assert 'perc_per_region' in params, \
         "Error: This formulation requires a vector of required RES penetration per region."
-    assert len(params['perc_per_region']) == len(resite.regions), \
-        f"Error: number of percentages ({len(params['perc_per_region'])}) " \
-        f"must be equal to number of regions ({len(resite.regions)}"
     assert 'perc_global' in params, "Error: This formulation requires a global RES penetration."
 
     accepted_resolutions = ["hour", "day", "week", "month", "full"]
@@ -95,7 +92,7 @@ def get_cost_df(techs: list, timestamps):
 
 
 def build_model_gurobipy(resite, params: Dict):
-    """Model build-up using pyomo"""
+    """Model build-up using gurobipy"""
 
     from gurobipy import Model
     from resite.models.gurobipy_utils import minimize_total_cost, capacity_bigger_than_existing, \
@@ -104,6 +101,7 @@ def build_model_gurobipy(resite, params: Dict):
 
     data = resite.data_dict
     load = data["load"].values
+    input_region = resite.input_region
     regions = resite.regions
     technologies = resite.technologies
     tech_points_tuples = list(resite.tech_points_tuples)
@@ -116,7 +114,14 @@ def build_model_gurobipy(resite, params: Dict):
     model = Model()
 
     # - Parameters - #
-    covered_load_perc_per_region = dict(zip(regions, params["perc_per_region"]))
+    path_to_folder = f"{data_path}resite/"
+    perc_per_region_df = pd.read_excel(join(path_to_folder, 'perc_per_region.xlsx'),
+                                       sheet_name=input_region, index_col=0)
+    perc_per_region = perc_per_region_df.values
+    assert len(perc_per_region) == len(resite.regions), \
+        f"number of percentages ({len(perc_per_region)}) " \
+        f"must be equal to number of regions ({len(resite.regions)})."
+    covered_load_perc_per_region = dict(zip(regions, perc_per_region))
     covered_load_perc_global = params['perc_global']
 
     # - Variables - #

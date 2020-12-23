@@ -21,8 +21,7 @@ if __name__ == '__main__':
         makedirs(output_folder)
 
     logger.info('Building class.')
-    countries = get_subregions(params['regions'])
-    resite = Resite(countries, params["technologies"], params["timeslice"],
+    resite = Resite(params["region"], params["technologies"], params["timeslice"],
                     params["spatial_resolution"], params['min_cap_if_selected'])
 
     logger.info('Reading input.')
