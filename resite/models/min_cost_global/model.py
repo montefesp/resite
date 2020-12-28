@@ -46,12 +46,12 @@ def build_model(resite, modelling: str, params: Dict):
     accepted_modelling = ["docplex", "gurobipy", "pyomo"]
     assert modelling in accepted_modelling, f"Error: This formulation was not coded with modelling language {modelling}"
     assert 'perc_per_region' in params, \
-        "Error: This formulation requires a vector of required RES penetration per region."
-    assert 'perc_global' in params, "Error: This formulation requires a global RES penetration."
+        "This formulation requires a vector of required RES penetration per region."
+    assert 'perc_global' in params, "This formulation requires a global RES penetration."
 
     accepted_resolutions = ["hour", "day", "week", "month", "full"]
     assert "time_resolution" in params and params["time_resolution"] in accepted_resolutions, \
-        f"Error: This formulation requires a time resolution chosen among {accepted_resolutions}," \
+        f"This formulation requires a time resolution chosen among {accepted_resolutions}," \
         f" got {params['time_resolution']}"
 
     build_model_ = globals()[f"build_model_{modelling}"]
@@ -122,7 +122,12 @@ def build_model_gurobipy(resite, params: Dict):
         f"number of percentages ({len(perc_per_region)}) " \
         f"must be equal to number of regions ({len(resite.regions)})."
     covered_load_perc_per_region = dict(zip(regions, perc_per_region))
-    covered_load_perc_global = params['perc_global']
+
+    perc_global_df = pd.read_csv(join(path_to_folder, 'perc_global.csv'), index_col=0)
+    covered_load_perc_global = perc_global_df.values
+    assert len(covered_load_perc_global) == len(time_slices), \
+        f"number of percentages ({len(covered_load_perc_global)}) " \
+        f"must be equal to number of time slices ({len(time_slices)})."
 
     # - Variables - #
     # Energy not served
@@ -146,7 +151,7 @@ def build_model_gurobipy(resite, params: Dict):
     supply_bigger_than_demand_regional(model, p, ens, regions, tech_points_regions_ds, load,
                                        int_timestamps, time_slices, covered_load_perc_per_region)
 
-    # On a global basis
+    # On a global basis, supply must equal demand
     supply_bigger_than_demand_global(model, p, ens, regions, tech_points_regions_ds, load,
                                      int_timestamps, time_slices, covered_load_perc_global)
 

@@ -132,6 +132,7 @@ def build_model_gurobipy(resite, params: Dict):
                                 tech_points_tuples, int_timestamps)
 
     # Impose a certain percentage of the load to be covered over each time slice
+    # On a regional basis
     supply_bigger_than_demand_regional(model, p, ens, regions, tech_points_regions_ds, load,
                                        int_timestamps, time_slices, covered_load_perc_per_region)
 

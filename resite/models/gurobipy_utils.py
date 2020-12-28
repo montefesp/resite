@@ -158,7 +158,7 @@ def supply_bigger_than_demand_global(model, p, ens, regions, tech_points_regions
     model.addConstrs(((sum(region_p_dict[region][t] for t in time_slices[u] for region in regions) +
                        sum(ens[region, t] for t in time_slices[u] for region in regions) >=
                        sum(load[t, regions.index(region)] for t in time_slices[u] for region in regions)
-                       * covered_load_perc_global)
+                       * covered_load_perc_global[u])
                        for u in np.arange(len(time_slices))), name='generation_check_global')
 
 
