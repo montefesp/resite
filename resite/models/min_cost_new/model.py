@@ -112,7 +112,13 @@ def build_model_gurobipy(resite, params: Dict):
     model = Model()
 
     # - Parameters - #
-    covered_load_perc_per_region = dict(zip(regions, params["perc_per_region"]))
+    path_to_folder = f"{data_path}resite/"
+    perc_per_region_df = pd.read_csv(join(path_to_folder, 'perc_per_region.csv'), index_col=0)
+    # perc_per_region = perc_per_region_df.values
+    assert len(perc_per_region_df.columns) == len(resite.regions), \
+        f"number of percentages ({len(perc_per_region_df.columns)}) " \
+        f"must be equal to number of regions ({len(resite.regions)})."
+    # covered_load_perc_per_region = dict(zip(regions, perc_per_region))
 
     # - Variables - #
     # Energy not served
@@ -134,7 +140,7 @@ def build_model_gurobipy(resite, params: Dict):
     # Impose a certain percentage of the load to be covered over each time slice
     # On a regional basis
     supply_bigger_than_demand_regional(model, p, ens, regions, tech_points_regions_ds, load,
-                                       int_timestamps, time_slices, covered_load_perc_per_region)
+                                       int_timestamps, time_slices, perc_per_region_df)
 
     # Percentage of capacity installed must be bigger than existing percentage
     existing_cap_percentage_ds = data["existing_cap_ds"].divide(data["cap_potential_ds"])
