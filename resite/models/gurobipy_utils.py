@@ -134,12 +134,11 @@ def supply_bigger_than_demand_regional(model, p, ens, regions, tech_points_regio
         region_p_sum = pd.Series([sum(p[tech, lon, lat, t] for tech, lon, lat in region_tech_points)
                                   for t in int_timestamps], index=int_timestamps)
         region_p_dict[region] = region_p_sum
-        perc_per_region = covered_load_perc_per_region.loc[:, region]
 
     # Impose a certain percentage of the load to be covered over each time slice
     model.addConstrs((sum(region_p_dict[region][t] for t in time_slices[u]) +
                       sum(ens[region, t] for t in time_slices[u]) >=
-                      sum(load[t, regions.index(region)] for t in time_slices[u]) * perc_per_region.iloc[u]
+                      sum(load[t, regions.index(region)] for t in time_slices[u]) * covered_load_perc_per_region.loc[region]
                       for region in regions for u in np.arange(len(time_slices))),
                      name='generation_bigger_than_load_proportion')
 
