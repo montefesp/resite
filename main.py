@@ -17,9 +17,11 @@ params = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
 
 if __name__ == '__main__':
 
+    regions = get_subregions(params['region'])
+
     net = pypsa.Network()
-    net = get_topology(net, get_subregions(params['region']), p_nom_extendable=True, extension_multiplier=2.0)
-    regions_shapes = net.buses.loc[get_subregions(params['region']), ["onshore_region", 'offshore_region']]
+    net = get_topology(net, regions, p_nom_extendable=True, extension_multiplier=2.0)
+    regions_shapes = net.buses.loc[regions, ["onshore_region", 'offshore_region']]
     regions_shapes.columns = ['onshore', 'offshore']
 
     output_folder = join(dirname(abspath(__file__)), f"output/{strftime('%Y%m%d_%H%M%S')}/")
@@ -28,7 +30,7 @@ if __name__ == '__main__':
         makedirs(output_folder)
 
     logger.info('Building class.')
-    resite = Resite(params["region"], params["technologies"], params["timeslice"],
+    resite = Resite(regions, params["technologies"], params["timeslice"],
                     params["spatial_resolution"], params['min_cap_if_selected'])
 
     logger.info('Reading input.')

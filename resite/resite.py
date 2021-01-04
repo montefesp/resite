@@ -55,7 +55,7 @@ class Resite:
         """
 
         self.technologies = technologies
-        self.regions = get_subregions(regions)
+        self.regions = regions
         self.timestamps = pd.date_range(timeslice[0], timeslice[1], freq='1H')
         self.spatial_res = spatial_resolution
         self.min_cap_if_selected = min_cap_if_selected
