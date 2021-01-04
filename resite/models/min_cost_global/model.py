@@ -101,7 +101,6 @@ def build_model_gurobipy(resite, params: Dict):
 
     data = resite.data_dict
     load = data["load"].values
-    input_region = resite.input_region
     regions = resite.regions
     technologies = resite.technologies
     tech_points_tuples = list(resite.tech_points_tuples)
@@ -116,11 +115,9 @@ def build_model_gurobipy(resite, params: Dict):
     # - Parameters - #
     path_to_folder = f"{data_path}resite/"
     perc_per_region_df = pd.read_csv(join(path_to_folder, 'perc_per_region.csv'), index_col=0)
-    # perc_per_region = perc_per_region_df.values
     assert len(perc_per_region_df.index) == len(resite.regions), \
-        f"number of percentages ({len(perc_per_region_df.columns)}) " \
+        f"number of percentages ({len(perc_per_region_df.index)}) " \
         f"must be equal to number of regions ({len(resite.regions)})."
-    # covered_load_perc_per_region = dict(zip(regions, perc_per_region))
 
     perc_global_df = pd.read_csv(join(path_to_folder, 'perc_global.csv'), index_col=0)
     covered_load_perc_global = perc_global_df.values

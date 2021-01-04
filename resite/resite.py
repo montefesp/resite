@@ -55,9 +55,7 @@ class Resite:
         """
 
         self.technologies = technologies
-        #TODO: this below works for region lists of 1 entry only.
-        self.input_region = regions[0]
-        self.regions = get_subregions(regions[0])
+        self.regions = get_subregions(regions)
         self.timestamps = pd.date_range(timeslice[0], timeslice[1], freq='1H')
         self.spatial_res = spatial_resolution
         self.min_cap_if_selected = min_cap_if_selected
@@ -108,6 +106,7 @@ class Resite:
         load_df = pd.DataFrame(0., index=self.timestamps, columns=self.regions)
         if compute_load:
             load_df = get_load(timestamps=self.timestamps, regions=self.regions, missing_data='interpolate')
+            load_df = load_df.multiply(0.75)
 
         # Get shape of regions and list of subregions
         onshore_technologies = [get_config_values(tech, ["onshore"]) for tech in self.technologies]

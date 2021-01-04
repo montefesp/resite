@@ -18,8 +18,8 @@ params = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
 if __name__ == '__main__':
 
     net = pypsa.Network()
-    net = get_topology(net, get_subregions(params['region'][0]), p_nom_extendable=True, extension_multiplier=2.0)
-    regions_shapes = net.buses.loc[get_subregions(params['region'][0]), ["onshore_region", 'offshore_region']]
+    net = get_topology(net, get_subregions(params['region']), p_nom_extendable=True, extension_multiplier=2.0)
+    regions_shapes = net.buses.loc[get_subregions(params['region']), ["onshore_region", 'offshore_region']]
     regions_shapes.columns = ['onshore', 'offshore']
 
     output_folder = join(dirname(abspath(__file__)), f"output/{strftime('%Y%m%d_%H%M%S')}/")
