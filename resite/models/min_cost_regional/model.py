@@ -46,11 +46,11 @@ def build_model(resite, modelling: str, params: Dict):
     accepted_modelling = ["docplex", "gurobipy", "pyomo"]
     assert modelling in accepted_modelling, f"Error: This formulation was not coded with modelling language {modelling}"
 
-    assert 'perc_per_region' in params and len(params['perc_per_region']) == len(resite.regions), \
-        "Error: This formulation requires a vector of required RES penetration per region."
+    assert 'perc_per_region' in params, \
+        "This formulation requires a vector of required RES penetration per region."
     accepted_resolutions = ["hour", "day", "week", "month", "full"]
     assert "time_resolution" in params and params["time_resolution"] in accepted_resolutions, \
-        f"Error: This formulation requires a time resolution chosen among {accepted_resolutions}," \
+        f"This formulation requires a time resolution chosen among {accepted_resolutions}," \
         f" got {params['time_resolution']}"
 
     build_model_ = globals()[f"build_model_{modelling}"]
@@ -91,7 +91,7 @@ def get_cost_df(techs: list, timestamps):
 
 
 def build_model_gurobipy(resite, params: Dict):
-    """Model build-up using pyomo"""
+    """Model build-up using gurobipy"""
 
     from gurobipy import Model
     from resite.models.gurobipy_utils import minimize_total_cost, \
@@ -114,11 +114,9 @@ def build_model_gurobipy(resite, params: Dict):
     # - Parameters - #
     path_to_folder = f"{data_path}resite/"
     perc_per_region_df = pd.read_csv(join(path_to_folder, 'perc_per_region.csv'), index_col=0)
-    # perc_per_region = perc_per_region_df.values
-    assert len(perc_per_region_df.columns) == len(resite.regions), \
-        f"number of percentages ({len(perc_per_region_df.columns)}) " \
+    assert len(perc_per_region_df.index) == len(resite.regions), \
+        f"number of percentages ({len(perc_per_region_df.index)}) " \
         f"must be equal to number of regions ({len(resite.regions)})."
-    # covered_load_perc_per_region = dict(zip(regions, perc_per_region))
 
     # - Variables - #
     # Energy not served
