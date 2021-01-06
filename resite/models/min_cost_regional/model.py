@@ -114,6 +114,10 @@ def build_model_gurobipy(resite, params: Dict):
     # - Parameters - #
     path_to_folder = f"{data_path}resite/"
     perc_per_region_df = pd.read_csv(join(path_to_folder, 'perc_per_region.csv'), index_col=0)
+    missing_regions = set(perc_per_region_df.index).difference(set(resite.regions))
+    # For "remote" regions, the \xi value is set to 0.
+    missing_regions_df = pd.Series(0., index=missing_regions)
+    perc_per_region_df.append(missing_regions_df)
     assert len(perc_per_region_df.index) == len(resite.regions), \
         f"number of percentages ({len(perc_per_region_df.index)}) " \
         f"must be equal to number of regions ({len(resite.regions)})."

@@ -106,7 +106,6 @@ class Resite:
         load_df = pd.DataFrame(0., index=self.timestamps, columns=self.regions)
         if compute_load:
             load_df = get_load(timestamps=self.timestamps, regions=self.regions, missing_data='interpolate')
-            load_df = load_df.multiply(0.75)
 
         # Get shape of regions and list of subregions
         onshore_technologies = [get_config_values(tech, ["onshore"]) for tech in self.technologies]
