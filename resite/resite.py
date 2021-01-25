@@ -126,9 +126,9 @@ class Resite:
 
         # Divide the union of all regions shapes into grid cells of a given spatial resolution
         # TODO: this is shitty because you cannot add different technologies in separate regions
-        onshore_union = unary_union(regions_shapes["onshore"].dropna()) if any(onshore_technologies) else None
-        offshore_union = unary_union(regions_shapes["offshore"].dropna()) if not all(onshore_technologies) else None
-        grid_cells_ds = get_grid_cells(self.technologies, self.spatial_res, onshore_union, offshore_union)
+        grid_cells_ds = get_grid_cells(self.technologies, self.spatial_res,
+                                       regions_shapes["onshore"].dropna(),
+                                       regions_shapes["offshore"].dropna())
 
         # Compute capacities potential
         tech_config = get_config_dict(self.technologies, ['filters', 'power_density'])
@@ -150,9 +150,6 @@ class Resite:
         # Update capacity potential if existing capacity is bigger
         underestimated_capacity_indexes = existing_cap_ds > cap_potential_ds
         cap_potential_ds[underestimated_capacity_indexes] = existing_cap_ds[underestimated_capacity_indexes]
-
-        # TODO: remove or better integrate
-        # existing_cap_ds = pd.Series(0., index=cap_potential_ds.index)
 
         # Remove sites that have a potential capacity under the desired value or equal to 0
         if min_cap_pot is None:
