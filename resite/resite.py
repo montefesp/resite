@@ -16,6 +16,7 @@ from iepy.generation.vres.potentials.glaes import get_capacity_potential_for_sha
 from iepy.load import get_load
 from iepy.geographics import get_shapes, get_subregions, match_points_to_regions
 from iepy.technologies import get_config_dict, get_config_values
+from iepy.indicators.generation import compute_capacity_credit_from_potential
 
 from iepy.geographics.grid_cells import get_grid_cells
 from resite.models.utils import write_lp_file, solve_model
@@ -184,6 +185,8 @@ class Resite:
             points = list(zip(tech_sites_index.get_level_values(1), tech_sites_index.get_level_values(2)))
             tech_points_regions_ds[tech] = match_points_to_regions(points, regions_shapes[on_off].dropna()).values
 
+        cap_credit_ds = compute_capacity_credit_from_potential(load_df, cap_factor_df, tech_points_regions_ds)
+
         # Save all data in object
         self.use_ex_cap = use_ex_cap
         self.min_cap_pot_dict = min_cap_pot_dict
@@ -195,6 +198,7 @@ class Resite:
         self.data_dict["cap_potential_ds"] = cap_potential_ds.round(3)
         self.data_dict["existing_cap_ds"] = existing_cap_ds.round(3)
         self.data_dict["cap_factor_df"] = cap_factor_df.round(3)
+        self.data_dict["capacity_credit_ds"] = cap_credit_ds.round(3)
 
     def build_model(self, modelling: str, formulation: str, formulation_params: Dict,
                     write_lp: bool = False, output_folder: str = None):

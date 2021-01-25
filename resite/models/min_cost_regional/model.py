@@ -117,7 +117,7 @@ def build_model_gurobipy(resite, params: Dict):
     missing_regions = set(perc_per_region_df.index).difference(set(resite.regions))
     # For "remote" regions, the \xi value is set to 0.
     missing_regions_df = pd.Series(0., index=missing_regions)
-    perc_per_region_df = pd.concat([perc_per_region_df, missing_regions_df])
+    perc_per_region_df = pd.concat([perc_per_region_df, missing_regions_df]).loc[resite.regions]
     assert len(perc_per_region_df.index) == len(resite.regions), \
         f"number of percentages ({len(perc_per_region_df.index)}) " \
         f"must be equal to number of regions ({len(resite.regions)})."
