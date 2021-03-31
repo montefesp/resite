@@ -46,8 +46,6 @@ def build_model(resite, modelling: str, params: Dict):
     accepted_modelling = ["docplex", "gurobipy", "pyomo"]
     assert modelling in accepted_modelling, f"Error: This formulation was not coded with modelling language {modelling}"
 
-    assert 'perc_per_region' in params, \
-        "This formulation requires a vector of required RES penetration per region."
     accepted_resolutions = ["hour", "day", "week", "month", "full"]
     assert "time_resolution" in params and params["time_resolution"] in accepted_resolutions, \
         f"This formulation requires a time resolution chosen among {accepted_resolutions}," \
@@ -108,20 +106,23 @@ def build_model_gurobipy(resite, params: Dict):
     int_timestamps = np.arange(len(resite.timestamps))
 
     costs_df = get_cost_df(technologies, resite.timestamps)
+    multipliers_dict = params['multiplier_per_region']
+    if isinstance(multipliers_dict, float):
+        multipliers_per_region = pd.Series(multipliers_dict, index=resite.regions)
+    else:
+        multipliers_per_region = pd.Series(multipliers_dict)
 
     model = Model()
 
     # - Parameters - #
-    path_to_folder = f"{data_path}resite/"
-    perc_per_region_df = pd.read_csv(join(path_to_folder, 'perc_per_region.csv'), index_col=0)
-    remote_regions = set(resite.regions).difference(set(perc_per_region_df.index))
+    remote_regions = set(resite.regions).difference(set(multipliers_dict.keys()))
 
     if remote_regions:
         # For "remote" regions, the \xi value is set to 0.
         missing_regions_df = pd.Series(0., index=remote_regions)
-        perc_per_region_df = pd.concat([perc_per_region_df, missing_regions_df]).loc[resite.regions]
+        perc_per_region_df = pd.concat([multipliers_per_region, missing_regions_df]).loc[resite.regions]
     else:
-        perc_per_region_df = perc_per_region_df.loc[resite.regions]
+        perc_per_region_df = multipliers_per_region.loc[resite.regions]
 
     assert len(perc_per_region_df.index) == len(resite.regions), \
         f"number of percentages ({len(perc_per_region_df.index)}) " \

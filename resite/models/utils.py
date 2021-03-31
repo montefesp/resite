@@ -30,6 +30,8 @@ def solve_model(resite, output_folder: str, solver_options: Dict = None,  solver
 
     Parameters
     ----------
+    output_folder: str
+        Output folder
     resite: Resite
         Resite object with built model.
     solver_options: Dict
